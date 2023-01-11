@@ -1,3 +1,5 @@
+[![Nuget](https://img.shields.io/nuget/v/kidev.datastructures?style=plastic)](https://www.nuget.org/packages/KiDev.DataStructures)
+
 # KiDev.DataStructures
 #### A lot of specific, but very fast data structures.
 
