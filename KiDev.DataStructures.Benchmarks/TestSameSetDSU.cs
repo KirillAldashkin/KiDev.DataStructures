@@ -45,7 +45,7 @@ public class TestSameSetDSU
     }
 
     [Benchmark]
-    public void RandomTestNaive()
+    public void RandomTestArray()
     {
         for (var i = 0; i < Size - 1; i++)
         {
@@ -65,7 +65,7 @@ public class TestSameSetDSU
     }
 
     [Benchmark]
-    public void SequalTestNaive()
+    public void SequalTestArray()
     {
         for (var i = 0; i < Size - 1; i++)
         {

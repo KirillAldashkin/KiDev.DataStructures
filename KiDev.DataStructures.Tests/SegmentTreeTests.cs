@@ -29,10 +29,10 @@ public class SegmentTreeTests
         }
     }
 
-    [TestMethod("Aggregation sum")]
-    public void TestAggregateSum()
+    [TestMethod("Aggregation sum and Modify method")]
+    public void TestAggregateModify()
     {
-        const int SubTestCount = 200;
+        const int SubTestCount = 100;
         const int MinLength = 20;
         const int MaxLength = 50;
         const int Min = -100000;
@@ -45,13 +45,30 @@ public class SegmentTreeTests
             var tree = new SegmentTree<int>(test.Length, (a, b) => a + b);
             for (int i = 0; i < test.Length; i++) tree[i] = test[i];
             Assert.AreEqual(test.Sum(), tree.Aggregate(..));
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => tree.Aggregate(..(test.Length+1)));
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => tree.Aggregate((MinLength/2)..(test.Length+1)));
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => tree.Aggregate(..(test.Length + 1)));
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => tree.Aggregate((MinLength / 2)..(test.Length + 1)));
+
+            TestRandomRanges(test, tree);
 
             for (var j = 0; j < SubTestCount; j++)
             {
                 var start = rnd.Next(0, tree.Count);
-                var end = rnd.Next(start+1, tree.Count+1);
+                var end = rnd.Next(start + 1, tree.Count + 1);
+                var newValue = rnd.Next(Min, Max);
+
+                test.AsSpan(start..end).Fill(newValue);
+                tree.Modify(start..end, span => span.Fill(newValue));
+
+                TestRandomRanges(test, tree);
+            }
+        }
+
+        void TestRandomRanges(int[] test, SegmentTree<int> tree)
+        {
+            for (var j = 0; j < SubTestCount; j++)
+            {
+                var start = rnd.Next(0, tree.Count);
+                var end = rnd.Next(start + 1, tree.Count + 1);
                 var expect = test.Take(start..end).Sum();
                 Assert.AreEqual(expect, tree.Aggregate(start..end));
                 Assert.AreEqual(expect, tree.SubList(start..end).Aggregate(..));

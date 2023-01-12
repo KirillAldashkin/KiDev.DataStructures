@@ -33,7 +33,7 @@ public class UniteDSU
     }
 
     [Benchmark]
-    public void SequalUniteNaive()
+    public void SequalUniteArray()
     {
         var array = new ArrayDSU(Size);
         for (var i = 0; i < Size - 1; i++)
@@ -55,7 +55,7 @@ public class UniteDSU
     }
 
     [Benchmark]
-    public void RandomUniteNaive()
+    public void RandomUniteArray()
     {
         var array = new ArrayDSU(Size);
         for (var i = 0; i < Size - 1; i++)

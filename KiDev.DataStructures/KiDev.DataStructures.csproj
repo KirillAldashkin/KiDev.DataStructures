@@ -21,6 +21,7 @@
 		<None Include="README_NUGET.md" Pack="true" PackagePath="\"/>
 	</ItemGroup>
 	<ItemGroup Condition=" $(TargetFramework) == 'netstandard2.0' ">
-	  <PackageReference Include="IndexRange" Version="1.0.2" />
+		<PackageReference Include="IndexRange" Version="1.0.2" />
+		<PackageReference Include="System.Memory" Version="4.5.5" />
 	</ItemGroup>
 </Project>

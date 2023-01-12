@@ -84,6 +84,9 @@ public class SegmentTree<T> : IAggregableList<T>, IReadOnlyAggregableList<T>, IL
         var (left, len) = at.GetOffsetAndLength(_length);
         left += _start;
         var right = left + len - 1;
+        if (left < _start || right >= _start + _length) throw new ArgumentOutOfRangeException(nameof(at));
+        // Now 'left' and 'right' are the beginning and end (inclusive)
+        // of the range for aggregation in the '_storage' indexing.
 
         var ret = _basis;
         while (left <= right)
@@ -95,6 +98,33 @@ public class SegmentTree<T> : IAggregableList<T>, IReadOnlyAggregableList<T>, IL
             right = (right - 1) / 2;
         }
         return ret;
+    }
+
+    /// <summary>
+    /// Modifies data in the specified range.
+    /// </summary>
+    /// <param name="at">The range in which the data will be changed.</param>
+    /// <param name="modifier">A function that will change the data in a given range.</param>
+    public void Modify(Range at, SpanAccessor<T> modifier)
+    {
+        var (start, length) = at.GetOffsetAndLength(_length);
+        if (start < 0 || start + length > _length) throw new ArgumentOutOfRangeException(nameof(at));
+
+        modifier(_storage.AsSpan(_start + start, length));
+
+        var left = start + _start;
+        var right = left + length - 1;
+        // Now 'left' and 'right' are the beginning and end (inclusive)
+        // of the range of mutated data in the '_storage' indexing.
+        left /= 2;
+        right /= 2;
+        while (left > 0 && left <= right)
+        {
+            for (var i = left; i <= right; i++)
+                _storage[i] = _aggregator(_storage[i * 2], _storage[i * 2 + 1]);
+            left /= 2;
+            right /= 2;
+        }
     }
 
     /// <inheritdoc/>
@@ -133,6 +163,10 @@ public class SegmentTree<T> : IAggregableList<T>, IReadOnlyAggregableList<T>, IL
     }
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// Consider using the <see cref="Modify(Range, SpanAccessor{T})"/> method if you
+    /// want to modify large continuous chunks of data, as it is faster in such cases.
+    /// </remarks>
     public T this[Index index]
     {
         get => this[index.GetOffset(_length)];
@@ -140,6 +174,10 @@ public class SegmentTree<T> : IAggregableList<T>, IReadOnlyAggregableList<T>, IL
     }
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// Consider using the <see cref="Modify(Range, SpanAccessor{T})"/> method if you
+    /// want to modify large continuous chunks of data, as it is faster in such cases.
+    /// </remarks>
     public T this[int index]
     {
         get
