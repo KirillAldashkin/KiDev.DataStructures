@@ -3,11 +3,10 @@ namespace KiDev.DataStructures.Tests;
 [TestClass]
 public class SegmentTreeTests
 {
-    [TestCategory("SegmentTree")]
     [TestMethod("Initialization and indexation")]
     public void TestInitAndIndexing()
     {
-        const int SubTestCount = 20;
+        const int SubTestCount = 200;
         const int MinLength = 2;
         const int MaxLength = 50;
 
@@ -30,11 +29,10 @@ public class SegmentTreeTests
         }
     }
 
-    [TestCategory("SegmentTree")]
     [TestMethod("Aggregation sum")]
     public void TestAggregateSum()
     {
-        const int SubTestCount = 20;
+        const int SubTestCount = 200;
         const int MinLength = 20;
         const int MaxLength = 50;
         const int Min = -100000;
@@ -61,11 +59,10 @@ public class SegmentTreeTests
         }
     }
 
-    [TestCategory("SegmentTree")]
     [TestMethod("Sublist accessing, clear, IEnumerable")]
     public void TestClearEnumeration()
     {
-        const int SubTestCount = 20;
+        const int SubTestCount = 200;
         const int MinLength = 20;
         const int MaxLength = 50;
 
@@ -94,11 +91,10 @@ public class SegmentTreeTests
 
     }
 
-    [TestCategory("SegmentTree")]
     [TestMethod("CopyTo method")]
     public void TestCopyTo()
     {
-        const int SubTestCount = 20;
+        const int SubTestCount = 200;
         const int MinLength = 20;
         const int MaxLength = 50;
         const int Min = -100000;
@@ -126,7 +122,7 @@ public class SegmentTreeTests
         }
     }
 
-    private int[][] MakeArrays(Random rnd, int count, int minLen, int maxLen, int? min = null, int? max = null)
+    private static int[][] MakeArrays(Random rnd, int count, int minLen, int maxLen, int? min = null, int? max = null)
     {
         min ??= int.MinValue;
         max ??= int.MaxValue;
