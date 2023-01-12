@@ -2,7 +2,7 @@
 using KiDev.DataStructures;
 
 [MemoryDiagnoser(false)]
-public class GetSet
+public class SegmentTreeAccess
 {
     // Total amount of elements
     [Params(10, 1_000, 100_000, 10_000_000)]

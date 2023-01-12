@@ -3,8 +3,8 @@
 # KiDev.DataStructures
 #### A lot of specific, but very fast data structures.
 
-## SegmentTree\<T\>
-`List<T>`-like container that is slower when setting, but extremely fast when aggregating.
+## Segment tree
+`Array`-like container that is slower when setting, but extremely fast when aggregating.
 ```cs
 using KiDev.DataStructures;
 
@@ -15,11 +15,17 @@ for(var i = 0; i < array.Length; i++)
     tree[i] = array[i] = rnd.Next(-10000, 10000);
 Console.WriteLine($"{tree.Aggregate(10..30)} == {array.Take(10..30).Sum()}");
 ```
-~90000 times faster than the `for` loop over an array when aggregating 10M `int`'s:
+~90000 times faster than the `for` loop over an array when aggregating 10M `int`'s.
+
+## Disjoint set union
+Ñontainer that can check whether two items belong to the same set, and also fast at combining items into sets.
+```cs
+var dsu = new DisjointSetUnionDictionary<string>();
+dsu.Unite("foo", "bar");
+dsu.Unite("bob", "try");
+Console.WriteLine(dsu.InSameSet("foo", "bar")); // true
+Console.WriteLine(dsu.InSameSet("bar", "bob")); // false
+dsu.Unite("bar", "bob");
+Console.WriteLine(dsu.InSameSet("foo", "try")); // true
 ```
-|        Method |              Mean |          Error |         StdDev |        Ratio |
-|-------------- |------------------:|---------------:|---------------:|-------------:|
-|      ArrayFor |   7,985,157.48 ns |  88,720.653 ns |  78,648.548 ns |    92,003.40 |
-|     ArrayLinq | 129,321,418.33 ns | 929,449.946 ns | 869,408.056 ns | 1,490,157.57 |
-| TreeAggregate |          86.77 ns |       0.408 ns |       0.340 ns |         1.00 |
-```
+~900 times faster than the regular array implementation when randomly combining 50K `int`'s into sets.

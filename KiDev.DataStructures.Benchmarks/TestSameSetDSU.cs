@@ -12,7 +12,7 @@ public class TestSameSetDSU
     private static (int a, int b)[] randomQueries;
     private static (int a, int b)[] sequalQueries;
     private static ArrayDSU array;
-    private static DisjointSetUnion<int> dsu;
+    private static DisjointSetUnionDictionary<int> dsu;
     private static bool[] answers;
 #pragma warning restore CS8618
 
@@ -24,7 +24,7 @@ public class TestSameSetDSU
         sequalQueries = Enumerable.Range(0, Size - 1).Select(i => (i, i + 1)).ToArray();
 
         array = new(Size);
-        dsu = new();
+        dsu = new(Size);
         answers = new bool[Size - 1];
         var rndUnite = Enumerable.Range(0, Size * 10).Select(_ => (rnd.Next(Size), rnd.Next(Size)));
         foreach(var (a, b) in rndUnite)
@@ -45,7 +45,7 @@ public class TestSameSetDSU
     }
 
     [Benchmark]
-    public void RandomTestArray()
+    public void RandomTestNaive()
     {
         for (var i = 0; i < Size - 1; i++)
         {
@@ -65,7 +65,7 @@ public class TestSameSetDSU
     }
 
     [Benchmark]
-    public void SequalTestArray()
+    public void SequalTestNaive()
     {
         for (var i = 0; i < Size - 1; i++)
         {

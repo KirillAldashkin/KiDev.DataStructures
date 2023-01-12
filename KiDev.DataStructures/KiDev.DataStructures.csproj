@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.1;netstandard2.0</TargetFrameworks>
+		<TargetFrameworks>netstandard2.1;netstandard2.0;net6.0</TargetFrameworks>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>true</ImplicitUsings>
 		<LangVersion>10</LangVersion>
@@ -20,7 +20,7 @@
 	<ItemGroup>
 		<None Include="README_NUGET.md" Pack="true" PackagePath="\"/>
 	</ItemGroup>
-	<ItemGroup Condition=" $(TargetFramework) != 'netstandard2.1' ">
+	<ItemGroup Condition=" $(TargetFramework) == 'netstandard2.0' ">
 	  <PackageReference Include="IndexRange" Version="1.0.2" />
 	</ItemGroup>
 </Project>

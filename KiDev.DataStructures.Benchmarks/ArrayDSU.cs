@@ -1,5 +1,8 @@
 ﻿namespace KiDev.DataStructures.Benchmarks;
 
+/// <summary>
+/// Naive array-based implementation of <see cref="IDisjointSetUnion{TValue, THandle}"/>
+/// </summary>
 public class ArrayDSU : IDisjointSetUnion<int, int>
 {
     private int[] groups;
@@ -16,8 +19,7 @@ public class ArrayDSU : IDisjointSetUnion<int, int>
 
     public bool Unite(int a, int b)
     {
-        var setA = groups[a];
-        var setB = groups[a];
+        var (setA, setB) = (groups[a], groups[b]);
         if (setA == setB) return false;
         for (int i = 0; i < groups.Length; i++)
             if (groups[i] == setA) groups[i] = setB;

@@ -100,7 +100,7 @@ public class SegmentTree<T> : IAggregableList<T>, IReadOnlyAggregableList<T>, IL
     /// <inheritdoc/>
     public void Clear()
     {
-#if NETSTANDARD2_1_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
         Array.Fill(_storage, _basis);
 #else
         for(var i = 0; i < _storage.Length; i++) _storage[i] = _basis;

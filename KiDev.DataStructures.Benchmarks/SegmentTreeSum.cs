@@ -2,7 +2,7 @@
 using KiDev.DataStructures;
 
 [MemoryDiagnoser(true)]
-public class AggregateSum
+public class SegmentTreeSum
 {
     // Maximum sum of all elements
     private const int MaxSum = 1_000_000_000;

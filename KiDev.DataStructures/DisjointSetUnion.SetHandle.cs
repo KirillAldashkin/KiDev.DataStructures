@@ -1,16 +1,16 @@
 ﻿namespace KiDev.DataStructures;
 
-public partial class DisjointSetUnion<T>
+public partial class DisjointSetUnionDictionary<T>
 {
     /// <summary>
-    /// Represents a set handle in <see cref="DisjointSetUnion{T}"/>.
+    /// Represents a set handle in <see cref="DisjointSetUnionDictionary{T}"/>.
     /// </summary>
     public struct SetHandle
     {
-        private readonly DisjointSetUnion<T> _container;
+        private readonly DisjointSetUnionDictionary<T> _container;
         private T _element;
 
-        internal SetHandle(DisjointSetUnion<T> container, T element)
+        internal SetHandle(DisjointSetUnionDictionary<T> container, T element)
         {
             _container = container;
             _element = element;

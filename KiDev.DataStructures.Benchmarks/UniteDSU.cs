@@ -5,7 +5,7 @@ namespace KiDev.DataStructures.Benchmarks;
 [MemoryDiagnoser(true)]
 public class UniteDSU
 {
-    [Params(100, 1_000, 10_000)]
+    [Params(1_000, 50_000)]
     public static int Size { get; set; }
 
 #pragma warning disable CS8618
@@ -22,9 +22,31 @@ public class UniteDSU
     }
 
     [Benchmark(Baseline = true)]
+    public void SequalUniteDSU()
+    {
+        var union = new DisjointSetUnionDictionary<int>(Size);
+        for (var i = 0; i < Size - 1; i++)
+        {
+            var (a, b) = sequalUnite[i];
+            union.Unite(a, b);
+        }
+    }
+
+    [Benchmark]
+    public void SequalUniteNaive()
+    {
+        var array = new ArrayDSU(Size);
+        for (var i = 0; i < Size - 1; i++)
+        {
+            var (a, b) = sequalUnite[i];
+            array.Unite(a, b);
+        }
+    }
+
+    [Benchmark]
     public void RandomUniteDSU()
     {
-        var union = new DisjointSetUnion<int>();
+        var union = new DisjointSetUnionDictionary<int>(Size);
         for(var i = 0; i < Size - 1; i++)
         {
             var (a, b) = randomUnite[i];
@@ -33,34 +55,12 @@ public class UniteDSU
     }
 
     [Benchmark]
-    public void RandomUniteArray()
+    public void RandomUniteNaive()
     {
         var array = new ArrayDSU(Size);
         for (var i = 0; i < Size - 1; i++)
         {
             var (a, b) = randomUnite[i];
-            array.Unite(a, b);
-        }
-    }
-
-    [Benchmark]
-    public void SequalUniteDSU()
-    {
-        var union = new DisjointSetUnion<int>();
-        for (var i = 0; i < Size - 1; i++)
-        {
-            var (a, b) = sequalUnite[i];
-            union.Unite(a, b);
-        }
-    }
-
-    [Benchmark]
-    public void SequalUniteArray()
-    {
-        var array = new ArrayDSU(Size);
-        for (var i = 0; i < Size - 1; i++)
-        {
-            var (a, b) = sequalUnite[i];
             array.Unite(a, b);
         }
     }
