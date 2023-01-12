@@ -11,7 +11,8 @@ public class SegmentTree<T> : IAggregableList<T>, IReadOnlyAggregableList<T>, IL
 {
     private const string ST_IsFixedSize = "Size of SegmentTree cannot be changed. This method will throw a NotSupportedException.";
 
-    private readonly Func<T, T, T> _aggregator;
+    private readonly RefAggregator _aggregator;
+    private readonly Func<T, T, T> _oldAggregator;
     private readonly T[] _storage;
     private readonly int _start, _length;
     private readonly T _basis;
@@ -44,24 +45,73 @@ public class SegmentTree<T> : IAggregableList<T>, IReadOnlyAggregableList<T>, IL
     {
         _basis = basis;
         _length = length;
-        _aggregator = aggregator;
+        _oldAggregator = aggregator;
+        _aggregator = OldAggregate;
 
         var p = MinPow2(length);
 
         _storage = new T[1 << (p+1)];
         _start = _storage.Length / 2;
-        if(original is null)
+        InitializeStogare(original);
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SegmentTree{T}"/> class that has specified length and filled with <paramref name="basis"/>,
+    /// optionally copying values from <paramref name="original"/> source.
+    /// </summary>
+    /// <param name="length">The number of elements that the new segment tree can store.</param>
+    /// <param name="aggregator">
+    /// Function used to aggregate elements.<br/>
+    /// <b>THIS FUNCTION MUST MEET SEVERAL CONDITIONS, see remarks.</b>
+    /// </param>
+    /// <param name="original">Source to copy values from.</param>
+    /// <param name="basis">The value that is initial for the elements and neutral for the aggregator function.</param>
+    /// <remarks>
+    /// Actual memory consumption is O(2*P), where P is the smallest power of two not smaller than <paramref name="length"/>
+    /// <br/><br/>
+    /// <paramref name="aggregator"/> function should meet these conditions 
+    /// ('<c>G</c>' is <paramref name="aggregator"/>, '<c>B</c>' is <paramref name="basis"/>, 
+    /// '<c>E</c>', '<c>F</c>' and '<c>H</c>' are arbitrary instances of <typeparamref name="T"/> among the assumed range): <br/>
+    /// <code>
+    /// G(B, E) == E
+    /// G(E, F) == G(F, E)
+    /// G(E, G(F, H)) == G(F, G(E, H))
+    /// </code>
+    /// <b>If these conditions are violated, the BEHAVIOR of the <see cref="Aggregate(Range)"/> method is UNDEFINED.</b>
+    /// </remarks>
+    public SegmentTree(int length, RefAggregator aggregator, IEnumerable<T>? original = null, T basis = default!)
+    {
+        _basis = basis;
+        _length = length;
+        _oldAggregator = default!;
+        _aggregator = aggregator;
+
+        var p = MinPow2(length);
+
+        _storage = new T[1 << (p + 1)];
+        _start = _storage.Length / 2;
+        InitializeStogare(original);
+    }
+
+    private void InitializeStogare(IEnumerable<T>? original)
+    {
+        if (original is null)
             Clear();
         else
         {
             int index = 0;
             var enumr = original.GetEnumerator();
-            while(index < _length && enumr.MoveNext())
+            while (index < _length && enumr.MoveNext())
                 _storage[_start + index++] = enumr.Current;
             while (index < _length)
-                _storage[_start + index++] = basis;
+                _storage[_start + index++] = _basis;
+
+            for (var i = _start - 1; i > 0; i--)
+                _aggregator(in _storage[2 * i], in _storage[2 * i + 1], out _storage[i]);
         }
     }
+
+    private void OldAggregate(in T a, in T b, out T result) => result = _oldAggregator(a, b);
 
     /// <inheritdoc/>
     public int Count => _length;
@@ -91,8 +141,8 @@ public class SegmentTree<T> : IAggregableList<T>, IReadOnlyAggregableList<T>, IL
         var ret = _basis;
         while (left <= right)
         {
-            if ((left % 2) == 1) ret = _aggregator(ret, _storage[left]);
-            if ((right % 2) == 0) ret = _aggregator(ret, _storage[right]);
+            if ((left % 2) == 1) _aggregator(in ret, in _storage[left], out ret);
+            if ((right % 2) == 0) _aggregator(in ret, in _storage[right], out ret);
 
             left = (left + 1) / 2;
             right = (right - 1) / 2;
@@ -121,7 +171,7 @@ public class SegmentTree<T> : IAggregableList<T>, IReadOnlyAggregableList<T>, IL
         while (left > 0 && left <= right)
         {
             for (var i = left; i <= right; i++)
-                _storage[i] = _aggregator(_storage[i * 2], _storage[i * 2 + 1]);
+                _aggregator(in _storage[i * 2], in _storage[i * 2 + 1], out _storage[i]);
             left /= 2;
             right /= 2;
         }
@@ -193,7 +243,7 @@ public class SegmentTree<T> : IAggregableList<T>, IReadOnlyAggregableList<T>, IL
             index /= 2;
             while (index > 0)
             {
-                _storage[index] = _aggregator(_storage[index * 2], _storage[index * 2 + 1]);
+                _aggregator(in _storage[index * 2], in _storage[index * 2 + 1], out _storage[index]);
                 index /= 2;
             }
         }
@@ -266,4 +316,14 @@ public class SegmentTree<T> : IAggregableList<T>, IReadOnlyAggregableList<T>, IL
         }
         return p;
     }
+
+    /// <summary>
+    /// Represents a method that aggregates two data values into one using references.<br/>
+    /// <b>It is possible that <c>a==result</c> or <c>b==result</c> (points to the same location)</b>
+    /// </summary>
+    /// <typeparam name="T">Type of data to aggregate.</typeparam>
+    /// <param name="a">A reference to the first instance.</param>
+    /// <param name="b">A reference to the second instance.</param>
+    /// <param name="result">A reference to the result.</param>
+    public delegate void RefAggregator(in T a, in T b, out T result);
 }

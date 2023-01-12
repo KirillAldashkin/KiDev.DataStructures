@@ -17,13 +17,15 @@ public class SegmentTreeSum
 
 #pragma warning disable CS8618
     public static int[] array; // Source array
-    public static SegmentTree<int> tree; // Source segment tree
+    public static SegmentTree<int> valTree; // Source segment tree
+    public static SegmentTree<int> refTree; // Source segment tree
     public static int length; // Length of each subsequence
     public static int[] indices; // Indexes of the beginning of each subsequence
     public static int[] answers; // The results are recorded here so that the calculation code is not deleted during optimization
 #pragma warning restore CS8618
 
     private static int Summ(int a, int b) => a + b;
+    private static void SummRef(in int a, in int b, out int c) => c = a + b;
 
     [GlobalSetup]
     public static void Initialize()
@@ -32,8 +34,8 @@ public class SegmentTreeSum
         var rnd = new Random(2345);
         array = new int[Size];
         for(int i = 0; i < Size; i++) array[i] = rnd.Next(-MaxSum / Size, MaxSum / Size);
-        tree = new(Size, Summ);
-        for (int i = 0; i < Size; i++) tree[i] = array[i];
+        valTree = new(Size, Summ, array);
+        refTree = new(Size, SummRef, array);
 
         // Generate random subsequence indices here so every benchmark will do the same calculations
         length = Size / Fraction;
@@ -63,12 +65,22 @@ public class SegmentTreeSum
     }
 
     [Benchmark(Baseline = true)]
-    public void TreeAggregate()
+    public void TreeByValAggregate()
     {
         for (var i = 0; i < Fraction; i++)
         {
             var offset = indices[i];
-            answers[i] = tree.Aggregate(offset..(offset+length));
+            answers[i] = valTree.Aggregate(offset..(offset+length));
+        }
+    }
+
+    [Benchmark]
+    public void TreeByRefAggregate()
+    {
+        for (var i = 0; i < Fraction; i++)
+        {
+            var offset = indices[i];
+            answers[i] = refTree.Aggregate(offset..(offset + length));
         }
     }
 }
