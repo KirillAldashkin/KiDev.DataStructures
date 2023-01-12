@@ -7,7 +7,7 @@
 	</PropertyGroup>
 	<PropertyGroup>
 		<PackageId>KiDev.DataStructures</PackageId>
-		<PackageVersion>1.0.0</PackageVersion>
+		<PackageVersion>1.1.0</PackageVersion>
 		<Authors>AldashkinKirill</Authors>
 		<Description>Contains specific but very performant data structures.</Description>
 		<PackageProjectUrl>https://github.com/KirillAldashkin/KiDev.DataStructures</PackageProjectUrl>
