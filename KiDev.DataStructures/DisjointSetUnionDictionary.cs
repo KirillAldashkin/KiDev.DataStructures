@@ -115,19 +115,6 @@ public partial class DisjointSetUnionDictionary<T> : IDisjointSetUnion<T, Disjoi
     public DisjointSetUnionDictionary<T>.SetHandle SetOf(T a) => new(this, a);
 
     /// <inheritdoc/>
-    public IReadOnlyDictionary<SetHandle, IEnumerable<T>> Group(IEnumerable<T> elements)
-    {
-        var dict = new Dictionary<SetHandle, List<T>>();
-        foreach(var item in elements)
-        {
-            var set = SetOf(item);
-            if (!dict.TryGetValue(set, out var list)) 
-            {
-                list = new(); 
-                dict[set] = list;
-            }
-            list.Add(item);
-        }
-        return (IReadOnlyDictionary<SetHandle, IEnumerable<T>>)dict;
-    }
+    public IReadOnlyDictionary<DisjointSetUnionDictionary<T>.SetHandle, IEnumerable<T>> Group(IEnumerable<T> elements) =>
+        Helpers.DefaultGroup(this, elements);
 }

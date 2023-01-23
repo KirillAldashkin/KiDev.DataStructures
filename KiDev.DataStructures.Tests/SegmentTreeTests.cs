@@ -12,7 +12,7 @@ public class SegmentTreeTests
 
         var rnd = new Random(1234);
 
-        foreach (var test in MakeArrays(rnd, SubTestCount, MinLength, MaxLength))
+        foreach (var test in TestHelpers.MakeArrays(rnd, SubTestCount, MinLength, MaxLength))
         {
             var def = rnd.Next();
             var tree1 = new SegmentTree<int>(test.Length, Math.Max, basis: def);
@@ -25,7 +25,7 @@ public class SegmentTreeTests
                 Assert.AreEqual(tree1[i], test[i]);
             }
             var tree2 = new SegmentTree<int>(test.Length, Math.Max, test, def);
-            Assert.IsTrue(EnumerablesEqual(test, tree2));
+            Assert.IsTrue(TestHelpers.EnumerablesEqual(test, tree2));
         }
     }
 
@@ -40,7 +40,7 @@ public class SegmentTreeTests
 
         var rnd = new Random(2345);
 
-        foreach (var test in MakeArrays(rnd, SubTestCount, MinLength, MaxLength, Min, Max))
+        foreach (var test in TestHelpers.MakeArrays(rnd, SubTestCount, MinLength, MaxLength, Min, Max))
         {
             var tree = new SegmentTree<int>(test.Length, (a, b) => a + b);
             for (int i = 0; i < test.Length; i++) tree[i] = test[i];
@@ -85,13 +85,13 @@ public class SegmentTreeTests
 
         var rnd = new Random(3456);
 
-        foreach (var test in MakeArrays(rnd, SubTestCount, MinLength, MaxLength))
+        foreach (var test in TestHelpers.MakeArrays(rnd, SubTestCount, MinLength, MaxLength))
         {
             var basis = rnd.Next();
             var tree = new SegmentTree<int>(test.Length, Math.Min, basis: basis);
             for (int i = 0; i < test.Length; i++) tree[i] = test[i];
 
-            Assert.IsTrue(EnumerablesEqual(test, tree));
+            Assert.IsTrue(TestHelpers.EnumerablesEqual(test, tree));
 
             for (var j = 0; j < SubTestCount; j++)
             {
@@ -99,7 +99,7 @@ public class SegmentTreeTests
                 var end = rnd.Next(start + 1, tree.Count + 1);
                 var subArray = test.Take(start..end);
                 var subList = tree.SubList(start..end);
-                Assert.IsTrue(EnumerablesEqual(subArray, subList));
+                Assert.IsTrue(TestHelpers.EnumerablesEqual(subArray, subList));
             }
 
             tree.Clear();
@@ -119,13 +119,13 @@ public class SegmentTreeTests
 
         var rnd = new Random(4567);
 
-        foreach (var test in MakeArrays(rnd, SubTestCount, MinLength, MaxLength, Min, Max))
+        foreach (var test in TestHelpers.MakeArrays(rnd, SubTestCount, MinLength, MaxLength, Min, Max))
         {
             var tree = new SegmentTree<int>(test.Length, (a, b) => a + b);
             for (int i = 0; i < test.Length; i++) tree[i] = test[i];
             var copy = new int[test.Length];
             tree.CopyTo(copy, 0);
-            Assert.IsTrue(EnumerablesEqual(test, copy));
+            Assert.IsTrue(TestHelpers.EnumerablesEqual(test, copy));
 
             for (var j = 0; j < SubTestCount; j++)
             {
@@ -134,23 +134,8 @@ public class SegmentTreeTests
                 var subList = tree.SubList(start..);
                 var subCopy = new int[test.Length - start];
                 subList.CopyTo(subCopy, 0);
-                Assert.IsTrue(EnumerablesEqual(subList, subCopy));
+                Assert.IsTrue(TestHelpers.EnumerablesEqual(subList, subCopy));
             }
         }
     }
-
-    private static int[][] MakeArrays(Random rnd, int count, int minLen, int maxLen, int? min = null, int? max = null)
-    {
-        min ??= int.MinValue;
-        max ??= int.MaxValue;
-        var ret = new int[count][];
-        for (var i = 0; i < count; i++)
-            ret[i] = Enumerable.Range(0, rnd.Next(minLen, maxLen))
-                               .Select(t => rnd.Next(min.Value, max.Value))
-                               .ToArray();
-        return ret;
-    }
-
-    private static bool EnumerablesEqual<T>(IEnumerable<T> a, IEnumerable<T> b) =>
-        a.Zip(b).All(((T, T) c) => c.Item1!.Equals(c.Item2));
 }

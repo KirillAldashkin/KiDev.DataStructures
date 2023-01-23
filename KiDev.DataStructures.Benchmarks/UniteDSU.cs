@@ -22,12 +22,45 @@ public class UniteDSU
     }
 
     [Benchmark(Baseline = true)]
-    public void SequalUniteDSU()
+    public void SequalUniteIndexDSU()
+    {
+        var union = new DisjointSetUnionIndexOnly(Size);
+        for (var i = 0; i < Size - 1; i++)
+        {
+            var (a, b) = sequalUnite[i];
+            union.Unite(a, b);
+        }
+    }
+
+    [Benchmark]
+    public void RandomUniteIndexDSU()
+    {
+        var union = new DisjointSetUnionIndexOnly(Size);
+        for (var i = 0; i < Size - 1; i++)
+        {
+            var (a, b) = randomUnite[i];
+            union.Unite(a, b);
+        }
+    }
+
+    [Benchmark]
+    public void SequalUniteDictDSU()
     {
         var union = new DisjointSetUnionDictionary<int>(Size);
         for (var i = 0; i < Size - 1; i++)
         {
             var (a, b) = sequalUnite[i];
+            union.Unite(a, b);
+        }
+    }
+
+    [Benchmark]
+    public void RandomUniteDictDSU()
+    {
+        var union = new DisjointSetUnionDictionary<int>(Size);
+        for (var i = 0; i < Size - 1; i++)
+        {
+            var (a, b) = randomUnite[i];
             union.Unite(a, b);
         }
     }
@@ -40,17 +73,6 @@ public class UniteDSU
         {
             var (a, b) = sequalUnite[i];
             array.Unite(a, b);
-        }
-    }
-
-    [Benchmark]
-    public void RandomUniteDSU()
-    {
-        var union = new DisjointSetUnionDictionary<int>(Size);
-        for(var i = 0; i < Size - 1; i++)
-        {
-            var (a, b) = randomUnite[i];
-            union.Unite(a, b);
         }
     }
 
