@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace KiDev.DataStructures;
 
@@ -106,11 +107,11 @@ public class SegmentTree<T> : IAggregableList<T>, IReadOnlyAggregableList<T>, IL
             while (index < _length)
                 _storage[_start + index++] = _basis;
 
-            for (var i = _start - 1; i > 0; i--)
-                _aggregator(in _storage[2 * i], in _storage[2 * i + 1], out _storage[i]);
+            AggregateImpl(ref _storage[_start - 1], ref _storage[1], ref _storage[^1]);
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void OldAggregate(in T a, in T b, out T result) => result = _oldAggregator(a, b);
 
     /// <inheritdoc/>
@@ -138,14 +139,16 @@ public class SegmentTree<T> : IAggregableList<T>, IReadOnlyAggregableList<T>, IL
         // Now 'left' and 'right' are the beginning and end (inclusive)
         // of the range for aggregation in the '_storage' indexing.
 
+        // Use direct ref to suppres bounds checking since we have checked indexes
+        ref var storStart = ref _storage[0];
         var ret = _basis;
         while (left <= right)
         {
-            if ((left % 2) == 1) _aggregator(in ret, in _storage[left], out ret);
-            if ((right % 2) == 0) _aggregator(in ret, in _storage[right], out ret);
+            if ((left & 1) == 1) _aggregator(in ret, in Unsafe.Add(ref storStart, left), out ret);
+            if ((right & 1) == 0) _aggregator(in ret, in Unsafe.Add(ref storStart, right), out ret);
 
-            left = (left + 1) / 2;
-            right = (right - 1) / 2;
+            left = (left + 1) >> 1;
+            right = (right - 1) >> 1;
         }
         return ret;
     }
@@ -166,14 +169,31 @@ public class SegmentTree<T> : IAggregableList<T>, IReadOnlyAggregableList<T>, IL
         var right = left + length - 1;
         // Now 'left' and 'right' are the beginning and end (inclusive)
         // of the range of mutated data in the '_storage' indexing.
-        left /= 2;
-        right /= 2;
+        left >>= 1;
+        right >>= 1;
+
+        // Use direct ref to suppres bounds checking since we have checked indexes
+        ref var storStart = ref _storage[0];
         while (left > 0 && left <= right)
         {
-            for (var i = left; i <= right; i++)
-                _aggregator(in _storage[i * 2], in _storage[i * 2 + 1], out _storage[i]);
-            left /= 2;
-            right /= 2;
+            AggregateImpl(ref Unsafe.Add(ref storStart, right), 
+                          ref Unsafe.Add(ref storStart, left * 2 - 1), 
+                          ref Unsafe.Add(ref storStart, right * 2 + 1));
+            left >>= 1;
+            right >>= 1;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void AggregateImpl(ref T head, ref T rightStop, ref T rightChild)
+    {
+        ref var leftChild = ref Unsafe.Subtract(ref rightChild, 1);
+        while(!Unsafe.AreSame(ref rightStop, ref rightChild))
+        {
+            _aggregator(in leftChild, in rightChild, out head);
+            rightChild = ref Unsafe.Subtract(ref rightChild, 2);
+            leftChild = ref Unsafe.Subtract(ref leftChild, 2)!;
+            head = ref Unsafe.Subtract(ref head, 1);
         }
     }
 
@@ -206,11 +226,13 @@ public class SegmentTree<T> : IAggregableList<T>, IReadOnlyAggregableList<T>, IL
 
     #region Indexation
     /// <inheritdoc/>
+#pragma warning disable 8769, 8603 // implementation of old IList
     object IList.this[int index]
     {
-        get => this[index]!;
+        get => this[index];
         set => this[index] = (T)value;
     }
+#pragma warning restore 8769, 8603
 
     /// <inheritdoc/>
     /// <remarks>
@@ -230,21 +252,28 @@ public class SegmentTree<T> : IAggregableList<T>, IReadOnlyAggregableList<T>, IL
     /// </remarks>
     public T this[int index]
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
             if (index < 0 || index >= _length) throw new IndexOutOfRangeException(nameof(index));
             return _storage[index + _start];
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
             if (index < 0 || index >= _length) throw new IndexOutOfRangeException(nameof(index));
             index += _start;
-            _storage[index] = value;
-            index /= 2;
+
+            // Use direct ref to suppres bounds checking since we have checked indexes
+            ref var storStart = ref _storage[0];
+            Unsafe.Add(ref storStart, index) = value;
+            index >>= 1;
             while (index > 0)
             {
-                _aggregator(in _storage[index * 2], in _storage[index * 2 + 1], out _storage[index]);
-                index /= 2;
+                _aggregator(in Unsafe.Add(ref storStart, index * 2), 
+                            in Unsafe.Add(ref storStart, index * 2 + 1), 
+                            out Unsafe.Add(ref storStart, index));
+                index >>= 1;
             }
         }
     }
@@ -252,10 +281,10 @@ public class SegmentTree<T> : IAggregableList<T>, IReadOnlyAggregableList<T>, IL
 
     #region Searching
     /// <inheritdoc/>
-    public bool Contains(object value) => value is T t && Contains(t);
+    public bool Contains(object? value) => value is T t && Contains(t);
 
     /// <inheritdoc/>
-    public int IndexOf(object value) => value is T t ? IndexOf(t) : -1;
+    public int IndexOf(object? value) => value is T t ? IndexOf(t) : -1;
 
     /// <inheritdoc/>
     public bool Contains(T item) => _length != 0 && IndexOf(item) > -1;
@@ -282,7 +311,7 @@ public class SegmentTree<T> : IAggregableList<T>, IReadOnlyAggregableList<T>, IL
 
     [Obsolete(ST_IsFixedSize)]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public int Add(object value) => throw new NotSupportedException();
+    public int Add(object? value) => throw new NotSupportedException();
 
     [Obsolete(ST_IsFixedSize)]
     [EditorBrowsable(EditorBrowsableState.Never)]
@@ -290,7 +319,7 @@ public class SegmentTree<T> : IAggregableList<T>, IReadOnlyAggregableList<T>, IL
 
     [Obsolete(ST_IsFixedSize)]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public void Insert(int index, object value) => throw new NotSupportedException();
+    public void Insert(int index, object? value) => throw new NotSupportedException();
 
     [Obsolete(ST_IsFixedSize)]
     [EditorBrowsable(EditorBrowsableState.Never)]
@@ -298,7 +327,7 @@ public class SegmentTree<T> : IAggregableList<T>, IReadOnlyAggregableList<T>, IL
 
     [Obsolete(ST_IsFixedSize)]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public void Remove(object value) => throw new NotSupportedException();
+    public void Remove(object? value) => throw new NotSupportedException();
 
     [Obsolete(ST_IsFixedSize)]
     [EditorBrowsable(EditorBrowsableState.Never)]

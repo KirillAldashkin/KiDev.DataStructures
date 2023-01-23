@@ -19,11 +19,14 @@ internal class AggregableSubList<T> : IAggregableList<T>, IReadOnlyAggregableLis
         _length = length;
     }
 
+#pragma warning disable 8769, 8603 // implementation of old IList
     object IList.this[int index]
     { 
-        get => this[index]!;
-        set => this[index] = (T)value; 
+        get => this[index];
+        set => this[index] = (T)value;
     }
+#pragma warning restore 8769, 8603
+
     public T this[Index index] 
     { 
         get => this[index.GetOffset(_length)]; 
@@ -80,9 +83,9 @@ internal class AggregableSubList<T> : IAggregableList<T>, IReadOnlyAggregableLis
     public IEnumerator<T> GetEnumerator() => _from.Skip(_start).Take(_length).GetEnumerator();
 
     #region Searching
-    public bool Contains(object value) => value is T t && Contains(t);
+    public bool Contains(object? value) => value is T t && Contains(t);
     public bool Contains(T item) => _length != 0 && IndexOf(item) > -1;
-    public int IndexOf(object value) => value is T t ? IndexOf(t) : -1;
+    public int IndexOf(object? value) => value is T t ? IndexOf(t) : -1;
     public int IndexOf(T item) => IndexOf(item, 0);
     public int IndexOf(T item, int startIndex)
     {
@@ -95,11 +98,11 @@ internal class AggregableSubList<T> : IAggregableList<T>, IReadOnlyAggregableLis
 
     #region Not supported
     public void Add(T item) => throw new NotSupportedException();
-    public int Add(object value) => throw new NotSupportedException();
+    public int Add(object? value) => throw new NotSupportedException();
     public void Insert(int index, T item) => throw new NotSupportedException();
-    public void Insert(int index, object value) => throw new NotSupportedException();
+    public void Insert(int index, object? value) => throw new NotSupportedException();
     public bool Remove(T item) => throw new NotSupportedException();
-    public void Remove(object value) => throw new NotSupportedException();
+    public void Remove(object? value) => throw new NotSupportedException();
     public void RemoveAt(int index) => throw new NotSupportedException();
     #endregion
 }

@@ -1,5 +1,7 @@
 ﻿using BenchmarkDotNet.Attributes;
 using KiDev.DataStructures;
+using System.Numerics;
+using System.Runtime.InteropServices;
 
 [MemoryDiagnoser(true)]
 public class SegmentTreeSum
@@ -36,7 +38,7 @@ public class SegmentTreeSum
         for(int i = 0; i < Size; i++) array[i] = rnd.Next(-MaxSum / Size, MaxSum / Size);
         valTree = new(Size, Summ, array);
         refTree = new(Size, SummRef, array);
-
+    
         // Generate random subsequence indices here so every benchmark will do the same calculations
         length = Size / Fraction;
         indices = Enumerable.Range(0, Fraction).Select(i => rnd.Next(0, Size - length + 1)).ToArray();
@@ -64,7 +66,7 @@ public class SegmentTreeSum
         }
     }
 
-    [Benchmark(Baseline = true)]
+    [Benchmark]
     public void TreeByValAggregate()
     {
         for (var i = 0; i < Fraction; i++)
@@ -74,13 +76,32 @@ public class SegmentTreeSum
         }
     }
 
-    [Benchmark]
+    [Benchmark(Baseline = true)]
     public void TreeByRefAggregate()
     {
         for (var i = 0; i < Fraction; i++)
         {
             var offset = indices[i];
-            answers[i] = refTree.Aggregate(offset..(offset + length));
+            answers[i] = refTree.Aggregate(offset..(offset+length));
+        }
+    }
+
+    [Benchmark]
+    public void Vectorized()
+    {
+        for (var i = 0; i < Fraction; i++)
+        {
+            var offset = indices[i];
+            var data = array.AsSpan(offset, length);
+
+            var vecs = MemoryMarshal.Cast<int, Vector<int>>(data);
+            var sum = Vector<int>.Zero;
+            for (var j = 0; j < vecs.Length; j++)
+                sum += vecs[i];
+
+            answers[i] = 0;
+            for (var j = 0; j < Vector<int>.Count; j++)
+                answers[i] += sum[j];
         }
     }
 }

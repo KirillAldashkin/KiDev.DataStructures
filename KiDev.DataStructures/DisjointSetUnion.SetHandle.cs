@@ -27,7 +27,7 @@ public partial class DisjointSetUnionDictionary<T>
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is not SetHandle hndl) return false;
             return this == hndl;
